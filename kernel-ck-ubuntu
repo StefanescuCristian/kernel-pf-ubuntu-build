@@ -1,0 +1,101 @@
+#!/bin/sh
+. ./functions.h #include the functions
+
+#http://viajemotu.wordpress.com/2012/08/13/kernel-ck-for-ubuntu-precise/
+#https://github.com/chilicuil/learn/blob/master/sh/is/kernel-ck-ubuntu
+
+# $ time sh kernel-ck-ubuntu
+
+#####################################
+#kernel version base
+kernel="3.18"
+#kernel specific version
+patchkernel="0"
+#BFQ patch
+bfq="3.18.0-v7r6"
+#####################################
+
+################################################################################
+############DO NOT EDIT BELOW UNLESS YOU KNOW WHAT YOU'RE DOING#################
+################################################################################
+
+trap _cleanup SIGINT SIGTERM #trap ctrl-c
+
+#/tmp partition could have noexec
+tmp_path="${HOME}/.tmp/kernel-ck-ubuntu-${patchkernel}"
+curr_path="${PWD}"
+
+vbfq="$(printf "%s" "${bfq}" | cut -d'-' -f2)"
+
+
+
+_header
+_getroot
+
+_printfl "Downloading archives"
+_printfs "downloading main vanilla kernel tree ..."
+_cmd     mkdir -p "${tmp_path}"
+_cmd     cd "${tmp_path}"
+_waitfor wget --no-check-certificate -N http://www.kernel.org/pub/linux/kernel/v3.x/linux-"${kernel}".tar.gz
+[ ! -f linux-"${kernel}".tar.gz ] && _die "couldn't get http://www.kernel.org/pub/linux/kernel/v3.x/linux-${kernel}.tar.gz"
+
+if [ "$patchkernel" != 0 ]; then
+_printfs "downloading mainstream patches ..."
+_waitfor wget --no-check-certificate -N http://www.kernel.org/pub/linux/kernel/v3.x/patch-"${patchkernel}".gz
+[ ! -f patch-"${patchkernel}".gz ] && _die "couldn't get http://www.kernel.org/pub/linux/kernel/v3.x/patch-${patchkernel}.gz"
+fi;
+
+_printfs "downloading bfq patches ..."
+_waitfor wget -N "http://algo.ing.unimo.it/people/paolo/disk_sched/patches/${bfq}/0001-block-cgroups-kconfig-build-bits-for-BFQ-${vbfq}-${kernel}.patch"
+[ ! -f "0001-block-cgroups-kconfig-build-bits-for-BFQ-${vbfq}-${kernel}.patch" ] && \
+    _die "couldn't get http://algo.ing.unimo.it/people/paolo/disk_sched/patches/${bfq}/0001-block-cgroups-kconfig-build-bits-for-BFQ-${vbfq}-${kernel}.patch"
+_waitfor wget -N "http://algo.ing.unimo.it/people/paolo/disk_sched/patches/${bfq}/0002-block-introduce-the-BFQ-${vbfq}-I-O-sched-for-${kernel}.patch"
+[ ! -f "0002-block-introduce-the-BFQ-${vbfq}-I-O-sched-for-${kernel}.patch" ] && \
+    _die "couldn't get http://algo.ing.unimo.it/people/paolo/disk_sched/patches/${bfq}/0002-block-introduce-the-BFQ-${vbfq}-I-O-sched-for-${kernel}.patch"
+_waitfor wget -N "http://algo.ing.unimo.it/people/paolo/disk_sched/patches/${bfq}/0003-block-bfq-add-Early-Queue-Merge-EQM-to-BFQ-${vbfq}-for-${kernel}.0.patch"
+[ ! -f "0003-block-bfq-add-Early-Queue-Merge-EQM-to-BFQ-${vbfq}-for-${kernel}.0.patch" ] && \
+    _die "couldn't get http://algo.ing.unimo.it/people/paolo/disk_sched/patches/${bfq}/0003-block-bfq-add-Early-Queue-Merge-EQM-to-BFQ-${vbfq}-for-${kernel}.0.patch"
+_waitfor wget -N "https://raw.githubusercontent.com/graysky2/kernel_gcc_patch/master/enable_additional_cpu_optimizations_for_gcc_v4.9+_kernel_v3.15+.patch"
+[ ! -f "enable_additional_cpu_optimizations_for_gcc_v4.9+_kernel_v3.15+.patch" ] && \
+   _die "oh, snap, I guess you won't have any native arch optimisations"
+
+_printfl "Applying patches"
+_printfs "uncompresing kernel to ${tmp_path}/linux-${kernel}/ ..."
+if [ ! -d "/${tmp_path}/linux-${kernel}/" ]; then
+    _waitfor tar zxf "${tmp_path}/linux-${kernel}.tar.gz"
+    [ ! -d "${tmp_path}/linux-${kernel}" ] && _die "couldn't unpack ${tmp_path}/linux-${kernel}.tar.gz"
+fi
+
+if [ "$patchkernel" != 0 ]; then
+_printfs "uncompresing patches ..."
+_waitfor gunzip  patch-"${patchkernel}".gz; [ ! -f patch-"${patchkernel}" ] && _die "couldn't unpack patch-${patchkernel}.gz"
+fi
+
+_printfs "moving to ${tmp_path}/linux-${patchkernel}-${bfq}"
+_waitfor rm -rf "linux-${patchkernel}-${bfq}"
+_waitfor cp -R --  linux-"${kernel}" "linux-${patchkernel}-${bfq}"
+_cmd     cd "linux-${patchkernel}-${bfq}"
+
+_printfs "applying patches ..."
+if [ "$patchkernel" != 0 ]; then _cmd     "patch -p1 < ../patch-${patchkernel}"; fi
+_cmd     "patch -p1 < ../0001-block-cgroups-kconfig-build-bits-for-BFQ-${vbfq}-${kernel}.patch"
+_cmd     "patch -p1 < ../0002-block-introduce-the-BFQ-${vbfq}-I-O-sched-for-${kernel}.patch"
+_cmd     "patch -p1 < ../0003-block-bfq-add-Early-Queue-Merge-EQM-to-BFQ-${vbfq}-for-${kernel}.0.patch"
+_cmd	 "patch -p1 < ../enable_additional_cpu_optimizations_for_gcc_v4.9+_kernel_v3.15+.patch"
+
+_printfl "Configuring kernel"
+#use the running config
+_cmd     cp -- "/boot/config-`uname -r`" .config
+sudo modprobed-db recall
+make menuconfig
+
+_printfl "Compiling kernel"
+_printfs "running make-kpkg ..."
+
+printf "\\n" | _cmd sudo fakeroot make-kpkg -j5 --initrd kernel_image kernel_headers modules_image
+
+_printfl "DONE"
+_printfs "copying debs files ..."
+_cmd     cp -- ../linux-*.deb "${curr_path}"
+_printfs "you may want to install the generated packages and reboot your system, run: $ sudo dpkg -i linux-*.deb"
+_printfs "have fun ^_^!"
