@@ -58,6 +58,9 @@ _waitfor wget -N "http://algo.ing.unimo.it/people/paolo/disk_sched/patches/${bfq
 _waitfor wget -N "https://raw.githubusercontent.com/graysky2/kernel_gcc_patch/master/enable_additional_cpu_optimizations_for_gcc_v4.9+_kernel_v3.15+.patch"
 [ ! -f "enable_additional_cpu_optimizations_for_gcc_v4.9+_kernel_v3.15+.patch" ] && \
    _die "oh, snap, I guess you won't have any native arch optimisations"
+_waitfor wget -N "https://raw.githubusercontent.com/StefanescuCristian/kernel-pf-ubuntu-build/master/Ofast.patch"
+[ ! -f "Ofast.patch" ] && \
+   _die "https://www.youtube.com/watch?v=dQw4w9WgXcQ" #this should never happen
 
 _printfl "Applying patches"
 _printfs "uncompresing kernel to ${tmp_path}/linux-${kernel}/ ..."
@@ -82,17 +85,20 @@ _cmd     "patch -p1 < ../0001-block-cgroups-kconfig-build-bits-for-BFQ-${vbfq}-$
 _cmd     "patch -p1 < ../0002-block-introduce-the-BFQ-${vbfq}-I-O-sched-for-${kernel}.patch"
 _cmd     "patch -p1 < ../0003-block-bfq-add-Early-Queue-Merge-EQM-to-BFQ-${vbfq}-for-${kernel}.0.patch"
 _cmd	 "patch -p1 < ../enable_additional_cpu_optimizations_for_gcc_v4.9+_kernel_v3.15+.patch"
+_cmd     "patch -p1 < ../Ofast.patch"
 
 _printfl "Configuring kernel"
 #use the running config
 _cmd     cp -- "/boot/config-`uname -r`" .config
 sudo modprobed-db recall
-make menuconfig
+make localmodconfig
+make menuconfig #I'll remove this after I compile the kernel a few times and I get a slimmed .config running aka it's still in beta
 
 _printfl "Compiling kernel"
 _printfs "running make-kpkg ..."
 
-printf "\\n" | _cmd sudo fakeroot make-kpkg -j5 --initrd kernel_image kernel_headers modules_image
+CL=$(echo $(($(grep -c processor /proc/cpuinfo) + 1)))
+printf "\\n" | _cmd sudo fakeroot make-kpkg -j"${CL}" --initrd kernel_image kernel_headers modules_image
 
 _printfl "DONE"
 _printfs "copying debs files ..."
