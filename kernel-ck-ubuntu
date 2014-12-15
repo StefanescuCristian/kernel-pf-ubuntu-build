@@ -75,7 +75,7 @@ _waitfor gunzip  patch-"${patchkernel}".gz; [ ! -f patch-"${patchkernel}" ] && _
 fi
 
 _printfs "moving to ${tmp_path}/linux-${patchkernel}-${bfq}"
-_waitfor rm -rf "linux-${patchkernel}-${bfq}"
+_waitfor sudo rm -rf "linux-${patchkernel}-${bfq}"
 _waitfor cp -R --  linux-"${kernel}" "linux-${patchkernel}-${bfq}"
 _cmd     cd "linux-${patchkernel}-${bfq}"
 
@@ -98,7 +98,7 @@ _printfl "Compiling kernel"
 _printfs "running make-kpkg ..."
 
 CL=$(echo $(($(grep -c processor /proc/cpuinfo) + 1)))
-printf "\\n" | _cmd sudo fakeroot make-kpkg -j"${CL}" --initrd kernel_image kernel_headers modules_image
+printf "\\n" | _cmd time sudo fakeroot make-kpkg -j"${CL}" --initrd kernel_image kernel_headers modules_image
 
 _printfl "DONE"
 _printfs "copying debs files ..."
