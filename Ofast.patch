@@ -1,0 +1,48 @@
+--- a/Makefile
++++ b/Makefile
+@@ -613,6 +613,8 @@
+ 
+ ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
+ KBUILD_CFLAGS	+= -Os $(call cc-disable-warning,maybe-uninitialized,)
++else ifdef CONFIG_CC_OPTIMIZE_FOR_SPEED
++KBUILD_CFLAGS   += -Ofast
+ else
+ KBUILD_CFLAGS	+= -O2
+ endif
+
+--- a/init/Kconfig
++++ b/init/Kconfig
+@@ -1301,13 +1301,26 @@
+ 
+ endif
+ 
+-config CC_OPTIMIZE_FOR_SIZE
+-	bool "Optimize for size"
+-	help
+-	  Enabling this option will pass "-Os" instead of "-O2" to gcc
+-	  resulting in a smaller kernel.
+-
+-	  If unsure, say N.
++choice
++    prompt "GCC Optimizing level"		
++
++config CC_OPTIMIZE_NORMAL
++    bool "Optimize Normal (-O2)"
++    help
++      Enabling this option will pass "-O2" to gcc
++ config CC_OPTIMIZE_FOR_SIZE
++       bool "Optimize for size (-Os)"
++       help
++         Enabling this option will pass "-Os" to gcc
++          resulting in a smaller kernel.
++
++config CC_OPTIMIZE_FOR_SPEED
++    bool "Optimze for speed (-Ofast)"
++    help
++      Enabling this option will pass "-Ofast" to gcc
++      resulting in a larger kernel (but possibly faster)
++
++endchoice
+ 
+ config SYSCTL
+ 	bool
