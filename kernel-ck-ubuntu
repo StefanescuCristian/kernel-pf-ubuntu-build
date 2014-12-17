@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 . ./functions.h #include the functions
 
 #http://viajemotu.wordpress.com/2012/08/13/kernel-ck-for-ubuntu-precise/
@@ -10,7 +10,7 @@
 #kernel version base
 kernel="3.18"
 #kernel specific version
-patchkernel="0"
+patchkernel="3.18.1"
 #BFQ patch
 bfq="3.18.0-v7r6"
 #####################################
@@ -89,10 +89,7 @@ _cmd     "patch -p1 < ../Ofast.patch"
 
 _printfl "Configuring kernel"
 #use the running config
-_cmd     cp -- "/boot/config-`uname -r`" .config
-sudo modprobed-db recall
-make localmodconfig
-make menuconfig #I'll remove this after I compile the kernel a few times and I get a slimmed .config running aka it's still in beta
+make oldconfig
 
 _printfl "Compiling kernel"
 _printfs "running make-kpkg ..."
