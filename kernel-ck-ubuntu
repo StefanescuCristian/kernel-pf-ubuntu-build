@@ -24,10 +24,7 @@ trap _cleanup SIGINT SIGTERM #trap ctrl-c
 #/tmp partition could have noexec
 tmp_path="${HOME}/.tmp/kernel-ck-ubuntu-${patchkernel}"
 curr_path="${PWD}"
-
 vbfq="$(printf "%s" "${bfq}" | cut -d'-' -f2)"
-
-
 
 _header
 _getroot
@@ -95,7 +92,7 @@ _printfl "Compiling kernel"
 _printfs "running make-kpkg ..."
 
 CL=$(echo $(($(grep -c processor /proc/cpuinfo) + 1)))
-printf "\\n" | _cmd time sudo fakeroot make-kpkg -j"${CL}" --initrd kernel_image kernel_headers modules_image
+printf "\\n" | _cmd time make-kpkg -j"${CL}" --initrd --rootcmd fakeroot kernel_image kernel_headers modules_image
 
 _printfl "DONE"
 _printfs "copying debs files ..."

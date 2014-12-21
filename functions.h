@@ -38,15 +38,13 @@ _die()
 _header()
 {
     clear
-    _printfl "Kernel ck builder (${patchkernel})"
+    _printfl "Kernel builder (${patchkernel})"
     printf "%b\\n" "\033[1m Updates:\033[0m     https://github.com/chilicuil/learn/blob/master/sh/is/kernel-ck-ubuntu"
-    printf "%b\\n" "\033[1m Patches:\033[0m     -bfq,"
+    printf "%b\\n" "\033[1m Patches:\033[0m     bfq"
     _printfl "Current configuration: edit the script to change it"
     printf "%s\\n" "  build path:        ${tmp_path}"
     printf "%s\\n" "  kernel:            ${patchkernel}"
     printf "%s\\n" "  -bfq patchset:     ${bfq}"
-    printf "%s\\n" "  arch:              ${arqt}"
-    printf "%s\\n" "  concurrency level: ${cl}"
     _printfl
 }
 
