@@ -8,11 +8,11 @@
 
 #####################################
 #kernel version base
-kernel="3.18"
+kernel="4.0"
 #kernel specific version
-patchkernel="3.18.1"
+patchkernel="4.0.4"
 #BFQ patch
-bfq="3.18.0-v7r6"
+bfq="4.0.0-v7r7"
 #####################################
 
 ################################################################################
@@ -33,12 +33,12 @@ _printfl "Downloading archives"
 _printfs "downloading main vanilla kernel tree ..."
 _cmd     mkdir -p "${tmp_path}"
 _cmd     cd "${tmp_path}"
-_waitfor wget --no-check-certificate -N http://www.kernel.org/pub/linux/kernel/v3.x/linux-"${kernel}".tar.gz
+_waitfor wget --no-check-certificate -N http://www.kernel.org/pub/linux/kernel/v4.x/linux-"${kernel}".tar.gz
 [ ! -f linux-"${kernel}".tar.gz ] && _die "couldn't get http://www.kernel.org/pub/linux/kernel/v3.x/linux-${kernel}.tar.gz"
 
 if [ "$patchkernel" != 0 ]; then
 _printfs "downloading mainstream patches ..."
-_waitfor wget --no-check-certificate -N http://www.kernel.org/pub/linux/kernel/v3.x/patch-"${patchkernel}".gz
+_waitfor wget --no-check-certificate -N http://www.kernel.org/pub/linux/kernel/v4.x/patch-"${patchkernel}".gz
 [ ! -f patch-"${patchkernel}".gz ] && _die "couldn't get http://www.kernel.org/pub/linux/kernel/v3.x/patch-${patchkernel}.gz"
 fi;
 
@@ -82,11 +82,11 @@ _cmd     "patch -p1 < ../0001-block-cgroups-kconfig-build-bits-for-BFQ-${vbfq}-$
 _cmd     "patch -p1 < ../0002-block-introduce-the-BFQ-${vbfq}-I-O-sched-for-${kernel}.patch"
 _cmd     "patch -p1 < ../0003-block-bfq-add-Early-Queue-Merge-EQM-to-BFQ-${vbfq}-for-${kernel}.0.patch"
 _cmd	 "patch -p1 < ../enable_additional_cpu_optimizations_for_gcc_v4.9+_kernel_v3.15+.patch"
-_cmd     "patch -p1 < ../Ofast.patch"
 
 _printfl "Configuring kernel"
 #use the running config
-make oldconfig
+cp /home/cristi/config.ubuntu .config
+make menuconfig
 
 _printfl "Compiling kernel"
 _printfs "running make-kpkg ..."
