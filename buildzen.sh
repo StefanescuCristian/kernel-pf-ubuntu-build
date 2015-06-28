@@ -1,3 +1,4 @@
+make mrproper
 cp /boot/config-`uname -r` .config
 make oldconfig
 #make menuconfig
