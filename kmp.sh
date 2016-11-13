@@ -54,22 +54,22 @@ wget "$URL/$ver_id" -O "$KVPAGE" > /dev/null 2>&1
 read -p "Do you want a lowlatency kernel? [N/y]
 " latency
 if [[ $latency == [Yy] ]]; then
-	KERNEL=`grep -E "href.*image.*$ARCH.*latency.*deb" $KVPAGE | sed 's/<[^>]\+>/ /g' | awk '{print $1}'`
-else KERNEL=`grep -E "href.*image.*$ARCH.*generic.*deb" $KVPAGE | sed 's/<[^>]\+>/ /g' | awk '{print $1}'`
+	KERNEL=`grep -E "href.*image.*$ARCH.*latency.*deb" $KVPAGE | sed 's/<[^>]\+>/ /g' | sed 's/&nbsp;//g' |awk '{print $1}' | tail -n1`
+else KERNEL=`grep -E "href.*image.*$ARCH.*generic.*deb" $KVPAGE | sed 's/<[^>]\+>/ /g' | sed 's/&nbsp;//g' | awk '{print $1}' | tail -n1`
 fi
 
 read -p "Download headers? [Y/n]
 " headers
 if [[ $headers == [Yy] || $headers == "" ]] && [[ $latency == [Yy] ]]; then
-	HEADERS=`grep -E "href.*headers.*$ARCH.*latency.*deb" $KVPAGE | sed 's/<[^>]\+>/ /g' | awk '{print $1}'`
-else HEADERS=`grep -E "href.*headers.*$ARCH.*generic.*deb" $KVPAGE | sed 's/<[^>]\+>/ /g' | awk '{print $1}'`
+	HEADERS=`grep -E "href.*headers.*$ARCH.*latency.*deb" $KVPAGE | sed 's/<[^>]\+>/ /g' | sed 's/&nbsp;//g' |awk '{print $1}' | tail -n1`
+else HEADERS=`grep -E "href.*headers.*$ARCH.*generic.*deb" $KVPAGE | sed 's/<[^>]\+>/ /g' | sed 's/&nbsp;//g' |awk '{print $1}' | tail -n1`
 fi
 
 echo "Downloading the files"
 cd /tmp
 wget -c "$URL"/"$ver_id"/"$KERNEL" --progress=bar:force 2>&1 | tail -f -n +6
 if [[ $headers == [Yy] || $headers == "" ]]; then
-	HEADERS_ALL=`grep -E "href.*headers.*all.*deb" $KVPAGE | sed 's/<[^>]\+>/ /g' | awk '{print $1}'`
+	HEADERS_ALL=`grep -E "href.*headers.*all.*deb" $KVPAGE | sed 's/<[^>]\+>/ /g' | sed 's/&nbsp;//g' | awk '{print $1}' | tail -n1`
 	wget -c "$URL"/"$ver_id"/"$HEADERS" --progress=bar:force 2>&1 | tail -f -n +6
 	wget -c "$URL"/"$ver_id"/"$HEADERS_ALL" --progress=bar:force 2>&1 | tail -f -n +6
 fi
