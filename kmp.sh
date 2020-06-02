@@ -5,7 +5,7 @@
 # It's a stupid description and I'll probably change it in the near future.
 
 
-ARCH=`uname -m`; if [[ $ARCH == "x86_64" ]]; then ARCH="amd64"; else ARCH="i386"; fi
+ARCH=`dpkg --print-architecture`
 URL="http://kernel.ubuntu.com/~kernel-ppa/mainline"
 TEMP="/tmp/mainline.html"
 STRIP="/tmp/mainline.strip"
