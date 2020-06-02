@@ -55,7 +55,9 @@ read -p "Do you want a lowlatency kernel? [N/y]
 " latency
 if [[ $latency == [Yy] ]]; then
 	KERNEL=`grep -E "href.*image.*$ARCH.*latency.*deb" $KVPAGE | sed 's/<[^>]\+>/ /g' | sed 's/&nbsp;//g' |awk '{print $1}' | tail -n1`
+	KERNEL=`grep -E "href.*modules.*$ARCH.*latency.*deb" $KVPAGE | sed 's/<[^>]\+>/ /g' | sed 's/&nbsp;//g' |awk '{print $1}' | tail -n1`
 else KERNEL=`grep -E "href.*image.*$ARCH.*generic.*deb" $KVPAGE | sed 's/<[^>]\+>/ /g' | sed 's/&nbsp;//g' | awk '{print $1}' | tail -n1`
+else KERNEL=`grep -E "href.*modules.*$ARCH.*generic.*deb" $KVPAGE | sed 's/<[^>]\+>/ /g' | sed 's/&nbsp;//g' | awk '{print $1}' | tail -n1`
 fi
 
 read -p "Download headers? [Y/n]
