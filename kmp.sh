@@ -55,9 +55,9 @@ read -p "Do you want a lowlatency kernel? [N/y]
 " latency
 if [[ $latency == [Yy] ]]; then
 	KERNEL=`grep -E "href.*image.*$ARCH.*latency.*deb" $KVPAGE | sed 's/<[^>]\+>/ /g' | sed 's/&nbsp;//g' |awk '{print $1}' | tail -n1`
-	KERNEL=`grep -E "href.*modules.*$ARCH.*latency.*deb" $KVPAGE | sed 's/<[^>]\+>/ /g' | sed 's/&nbsp;//g' |awk '{print $1}' | tail -n1`
+	KERNELM=`grep -E "href.*modules.*$ARCH.*latency.*deb" $KVPAGE | sed 's/<[^>]\+>/ /g' | sed 's/&nbsp;//g' |awk '{print $1}' | tail -n1`
 else KERNEL=`grep -E "href.*image.*$ARCH.*generic.*deb" $KVPAGE | sed 's/<[^>]\+>/ /g' | sed 's/&nbsp;//g' | awk '{print $1}' | tail -n1`
-else KERNEL=`grep -E "href.*modules.*$ARCH.*generic.*deb" $KVPAGE | sed 's/<[^>]\+>/ /g' | sed 's/&nbsp;//g' | awk '{print $1}' | tail -n1`
+       	KERNELM=`grep -E "href.*modules.*$ARCH.*generic.*deb" $KVPAGE | sed 's/<[^>]\+>/ /g' | sed 's/&nbsp;//g' | awk '{print $1}' | tail -n1`
 fi
 
 read -p "Download headers? [Y/n]
@@ -70,6 +70,7 @@ fi
 echo "Downloading the files"
 cd /tmp
 wget -c "$URL"/"$ver_id"/"$KERNEL" --progress=bar:force 2>&1 | tail -f -n +6
+wget -c "$URL"/"$ver_id"/"$KERNELM" --progress=bar:force 2>&1 | tail -f -n +6
 if [[ $headers == [Yy] || $headers == "" ]]; then
 	HEADERS_ALL=`grep -E "href.*headers.*all.*deb" $KVPAGE | sed 's/<[^>]\+>/ /g' | sed 's/&nbsp;//g' | awk '{print $1}' | tail -n1`
 	wget -c "$URL"/"$ver_id"/"$HEADERS" --progress=bar:force 2>&1 | tail -f -n +6
@@ -82,16 +83,13 @@ if [[ $install == [Yy] || $install == "" ]]; then
 	if [[ $headers == [Yy] || $headers == "" ]]; then
 		sudo dpkg -i $HEADERS_ALL $HEADERS
 	fi
-	sudo dpkg -i $KERNEL
+	sudo dpkg -i $KERNEL $KERNELM
 fi
 
 read -p "Delete the *.deb files? [Y/n]
 " deb
 if [[ $deb == [Yy] || $deb == "" ]]; then
-	rm -v $KERNEL
-	if [[ -e $HEADERS ]]; then
-		rm -v $HEADERS_ALL $HEADERS
-	fi
+	rm *.deb
 fi
 
 #cleanup
