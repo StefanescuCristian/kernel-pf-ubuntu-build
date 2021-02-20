@@ -77,19 +77,29 @@ if [[ $headers == [Yy] || $headers == "" ]]; then
 	wget -c "$URL"/"$ver_id"/"$HEADERS_ALL" --progress=bar:force 2>&1 | tail -f -n +6
 fi
 
+#strip ARCH from the ARCH/linux-*
+
+K=`echo $KERNEL | sed "s,$ARCH/,,g"`
+KM=`echo $KERNELM | sed "s,$ARCH/,,g"`
+KH=`echo $HEADERS | sed "s,$ARCH/,,g"`
+KHA=`echo $HEADERS_ALL | sed "s,$ARCH/,,g"`
+
 read -p "Install the mthrf0cker? [Y/n]
 " install
 if [[ $install == [Yy] || $install == "" ]]; then 
 	if [[ $headers == [Yy] || $headers == "" ]]; then
-		sudo dpkg -i $HEADERS_ALL $HEADERS
+		sudo dpkg -i $KHA $KH
 	fi
-	sudo dpkg -i $KERNEL $KERNELM
+	sudo dpkg -i $K $KM
 fi
 
 read -p "Delete the *.deb files? [Y/n]
 " deb
 if [[ $deb == [Yy] || $deb == "" ]]; then
-	rm *.deb
+       rm -v $K
+       if [[ -e $HEADERS ]]; then
+               rm -v $KHA $KH
+       fi
 fi
 
 #cleanup
