@@ -49,7 +49,7 @@ fi
 # save it as $KVPAGE
 # grep through $KVPAGE for a generic or a lowlatency kernel
 # grep for the headers
-wget "$URL/$ver_id" -O "$KVPAGE" > /dev/null 2>&1
+wget  "$URL/$ver_id" -O "$KVPAGE" > /dev/null 2>&1
 
 read -p "Do you want a lowlatency kernel? [N/y]
 " latency
@@ -69,12 +69,12 @@ fi
 
 echo "Downloading the files"
 cd /tmp
-wget -c "$URL"/"$ver_id"/"$KERNEL" --progress=bar:force 2>&1 | tail -f -n +6
-wget -c "$URL"/"$ver_id"/"$KERNELM" --progress=bar:force 2>&1 | tail -f -n +6
+axel -c -n10 "$URL"/"$ver_id"/"$KERNEL"
+axel -c -n10 "$URL"/"$ver_id"/"$KERNELM"
 if [[ $headers == [Yy] || $headers == "" ]]; then
 	HEADERS_ALL=`grep -E "href.*headers.*all.*deb" $KVPAGE | sed 's/<[^>]\+>/ /g' | sed 's/&nbsp;//g' | awk '{print $1}' | tail -n1`
-	wget -c "$URL"/"$ver_id"/"$HEADERS" --progress=bar:force 2>&1 | tail -f -n +6
-	wget -c "$URL"/"$ver_id"/"$HEADERS_ALL" --progress=bar:force 2>&1 | tail -f -n +6
+	axel -c -n10 "$URL"/"$ver_id"/"$HEADERS"
+	axel -c -n10 "$URL"/"$ver_id"/"$HEADERS_ALL" 
 fi
 
 #strip ARCH from the ARCH/linux-*
